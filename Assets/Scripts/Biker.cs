@@ -15,7 +15,7 @@ public class Biker : MonoBehaviour {
 	void Update () {
         float v = Input.GetAxisRaw("Vertical");
         animator.SetInteger("Vertical", (int)v);
-        transform.Translate(Vector3.forward * v * Time.deltaTime * 2);
+        transform.Translate(Vector3.forward * v * Time.deltaTime * 3);
 
 	}
 }
