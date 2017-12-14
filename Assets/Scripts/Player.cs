@@ -13,9 +13,13 @@ public class Player : MonoBehaviour {
     private int SpeedZId = Animator.StringToHash("SpeedZ");
     private int VaultId = Animator.StringToHash("Vault");
     private int ColliderId = Animator.StringToHash("Collider");
+    private int SliderId = Animator.StringToHash("Slide");
+    private int IsHoldLogId = Animator.StringToHash("IsHoldLog");
 
     private Vector3 matchTarget = Vector3.zero;
     private CharacterController character;
+
+    public GameObject unityLog;
 
     // Use this for initialization
     void Start () {
@@ -29,6 +33,27 @@ public class Player : MonoBehaviour {
         animator.SetFloat(SpeedZId, Input.GetAxis("Vertical") * 4.1f);
         animator.SetFloat(SpeedRotateId, Input.GetAxis("Horizontal") * 126f);
 
+        processVault();
+        processSlider();
+
+        character.enabled = animator.GetFloat(ColliderId) < 0.5f;
+
+        //animator.SetFloat(SpeedId, Input.GetAxis("Vertical") * 4.1f);
+        //animator.SetFloat(SpeedId, Input.GetAxis("Vertical"));
+        //animator.SetFloat(HorizontalId, Input.GetAxis("Horizontal"));
+
+        //if (Input.GetKeyDown(KeyCode.LeftShift))
+        //{
+        //    animator.SetBool(IsSpeedUpId, true);
+        //} 
+        //if (Input.GetKeyUp(KeyCode.LeftShift))
+        //{
+        //    animator.SetBool(IsSpeedUpId, false);
+        //}
+    }
+
+    private void processVault()
+    {
         bool isVault = false;
         if (animator.GetFloat(SpeedZId) > 3 && animator.GetCurrentAnimatorStateInfo(0).IsName("Locomotion"))
         {
@@ -48,25 +73,53 @@ public class Player : MonoBehaviour {
             }
         }
         animator.SetBool(VaultId, isVault);
-            
+
         if (animator.GetCurrentAnimatorStateInfo(0).IsName("Vault") && animator.IsInTransition(0) == false)
         {
             animator.MatchTarget(matchTarget, Quaternion.identity, AvatarTarget.LeftHand, new MatchTargetWeightMask(Vector3.one, 0), 0.32f, 0.4f);
         }
+    }
 
-        character.enabled = animator.GetFloat(ColliderId) < 0.5f;
+    private void processSlider()
+    {
+        bool isSlider = false;
+        if (animator.GetFloat(SpeedZId) > 3 && animator.GetCurrentAnimatorStateInfo(0).IsName("Locomotion"))
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position + Vector3.up * 1.5f, transform.forward, out hit, 3))
+            {
+                if (hit.collider.tag == "Obstacle")
+                {
+                    if (hit.distance > 2)
+                    {
+                        Vector3 point = hit.point;
+                        point.y = 0;
+                        matchTarget = point + transform.forward * 2;
+                        isSlider = true;
+                    }
+                }
+            }
+        }
+        animator.SetBool(SliderId, isSlider);
 
-        //animator.SetFloat(SpeedId, Input.GetAxis("Vertical") * 4.1f);
-        //animator.SetFloat(SpeedId, Input.GetAxis("Vertical"));
-        //animator.SetFloat(HorizontalId, Input.GetAxis("Horizontal"));
+        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Slide") && animator.IsInTransition(0) == false)
+        {
+            animator.MatchTarget(matchTarget, Quaternion.identity, AvatarTarget.Root, new MatchTargetWeightMask(new Vector3(1, 0, 1), 0), 0.17f, 0.67f);
+        }
+    }
 
-        //if (Input.GetKeyDown(KeyCode.LeftShift))
-        //{
-        //    animator.SetBool(IsSpeedUpId, true);
-        //} 
-        //if (Input.GetKeyUp(KeyCode.LeftShift))
-        //{
-        //    animator.SetBool(IsSpeedUpId, false);
-        //}
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Wood")
+        {
+            Destroy(other.gameObject);
+            CarryWood();
+        }
+    }
+
+    private void CarryWood()
+    {
+        unityLog.SetActive(true);
+        animator.SetBool(IsHoldLogId, true);
     }
 }
