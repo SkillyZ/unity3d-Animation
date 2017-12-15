@@ -20,6 +20,8 @@ public class Player : MonoBehaviour {
     private CharacterController character;
 
     public GameObject unityLog;
+    public Transform leftHand;
+    public Transform rightHand;
 
     // Use this for initialization
     void Start () {
@@ -122,4 +124,20 @@ public class Player : MonoBehaviour {
         unityLog.SetActive(true);
         animator.SetBool(IsHoldLogId, true);
     }
+
+    private void OnAnimatorIK(int layerIndex)
+    {
+        if (layerIndex == 1)
+        {
+            int wight = animator.GetBool(IsHoldLogId) ? 1 : 1;
+            //当前层是hold log 层调用
+            animator.SetIKPosition(AvatarIKGoal.LeftHand, leftHand.position);
+            animator.SetIKRotation(AvatarIKGoal.LeftHand, leftHand.rotation);
+            animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, wight);
+            animator.SetIKRotation(AvatarIKGoal.RightHand, rightHand.rotation);
+            animator.SetIKPosition(AvatarIKGoal.RightHand, rightHand.position);
+            animator.SetIKPositionWeight(AvatarIKGoal.RightHand, wight);
+        }
+    }
+
 }
